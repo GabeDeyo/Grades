@@ -1,8 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Grades {
 	public class GradeBook {
+		public GradeBook() {
+			_name = "Empty";
+			grades = new List<float>();
+		}
+
+		private List<float> grades = new List<float>();
+		private string _name;
+
+		public event NameChangedDelegate NameChanged;
 
 		/* Provides no validation
 		public string Name {
@@ -10,21 +20,26 @@ namespace Grades {
 			set;
 		}*/
 
-		private string _name;
-
 		public string Name {
 			get {
 				return _name;
 			}
 			set {
-				if (!String.IsNullOrEmpty(value)) {
-					_name = value;
+				if (string.IsNullOrEmpty(value)) {
+					throw new ArgumentException("Error");
 				}
-			}
-		}
 
-		public GradeBook() {
-			grades = new List<float>();
+				if(_name != value) //Shows name IS changing
+				{ 
+					NameChangedEventArgs args = new NameChangedEventArgs();
+					args.ExistingName = _name;
+					args.NewName = value;
+
+					NameChanged(this, args);
+				}
+				_name = value;
+				
+			}
 		}
 
 		public GradeStatistics ComputeStatistics() {
@@ -44,10 +59,14 @@ namespace Grades {
 			return stats;
 		}
 
+		public void WriteGrades(TextWriter destination) {
+			for (int i = 0; i < grades.Count; i++) {
+				destination.WriteLine(grades[i]);
+			}
+		}
+
 		public void AddGrade(float grade) {
 			grades.Add(grade);
 		}
-
-		private List<float> grades = new List<float>();
     }
 }
